@@ -76,6 +76,7 @@
 | 方法 | 路径 | 角色 | 说明 |
 | --- | --- | --- | --- |
 | GET | /api/manager/activities | MANAGER | 本社团活动列表（含草稿/待审核） |
+| GET | /api/manager/activities/{id} | MANAGER | 本社团活动详情（编辑页回填；实现期扩展） |
 | POST | /api/manager/activities | MANAGER | 创建活动（草稿） |
 | PUT | /api/manager/activities/{id} | MANAGER | 修改草稿/被驳回活动 |
 | POST | /api/manager/activities/{id}/submit | MANAGER | 提交审核 |
@@ -86,6 +87,8 @@
 | POST | /api/manager/activities/{id}/signin/open | MANAGER | 开启签到，返回签到码与二维码内容 |
 | POST | /api/manager/activities/{id}/signin/manual | MANAGER | 人工补签（userId） |
 | GET | /api/manager/activities/{id}/statistics | MANAGER | 统计（报名/签到/缺席/到场率） |
+| GET | /api/manager/activities/{id}/attendance | MANAGER | 签到名单列表（实现期扩展，供签到管理页展示） |
+| GET | /api/manager/activities/{id}/unsigned | MANAGER | 未签到的报名成功成员（实现期扩展，补签候选） |
 | GET | /api/manager/activities/{id}/export/signups | MANAGER | 导出报名名单（Excel） |
 | GET | /api/manager/activities/{id}/export/attendance | MANAGER | 导出签到名单（Excel） |
 | GET | /api/manager/association | MANAGER | 本社团资料 |
