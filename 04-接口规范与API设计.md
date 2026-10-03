@@ -57,6 +57,7 @@
 | POST | /api/auth/logout | 全部 | 退出（前端清除 Token） |
 | POST | /api/auth/password | 全部 | 修改本人密码（原密码、新密码） |
 | GET | /api/auth/me | 全部 | 当前登录用户信息 |
+| PUT | /api/auth/profile | 全部 | 维护本人资料（姓名、手机号、头像；实现期扩展，对应 01 文档个人资料需求） |
 
 ### 4.2 学生端 student
 
@@ -69,6 +70,7 @@
 | GET | /api/me/signups | 学生 | 我的报名（状态：已报名/候补/已取消） |
 | POST | /api/signin/qrcode | 学生 | 扫码签到（activityId、token） |
 | GET | /api/me/notifications | 学生 | 我的通知（分页，含未读标记） |
+| GET | /api/signin/qrcode | 公开 | 扫码落地页（校验 token 后 302 跳转前端活动页携带签到参数，见 §5.3；浏览器跳转接口） |
 | POST | /api/me/notifications/{id}/read | 学生 | 标记通知已读 |
 
 ### 4.3 社团端 manager（负责人）
@@ -92,6 +94,7 @@
 | GET | /api/manager/activities/{id}/export/signups | MANAGER | 导出报名名单（Excel） |
 | GET | /api/manager/activities/{id}/export/attendance | MANAGER | 导出签到名单（Excel） |
 | GET | /api/manager/association | MANAGER | 本社团资料 |
+| GET | /api/manager/statistics | MANAGER | 工作台统计概览（活动/报名/签到总数与最近活动；实现期扩展） |
 | PUT | /api/manager/association | MANAGER | 维护本社团资料 |
 
 ### 4.4 管理端 admin
