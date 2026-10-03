@@ -1,0 +1,37 @@
+# =============================================================
+# systemd 服务单元模板（部署阶段使用）
+# 放置：/etc/systemd/system/assoc-server.service
+# 启用：systemctl daemon-reload && systemctl enable --now assoc-server
+# =============================================================
+
+[Unit]
+Description=Association System Spring Boot Server (association-system-server)
+After=network.target mysql.service
+Wants=mysql.service
+
+[Service]
+Type=simple
+User=assoc
+Group=assoc
+WorkingDirectory=/opt/association-system
+
+# Java 17 全路径启动（按服务器实际安装路径调整，如 /usr/lib/jvm/java-17-openjdk-amd64/bin/java）
+ExecStart=/usr/lib/jvm/java-17-openjdk-amd64/bin/java \
+  -Xms256m -Xmx512m \
+  -jar /opt/association-system/association-system-server.jar \
+  --spring.profiles.active=prod
+
+# 敏感配置经 EnvironmentFile 注入（替代命令行明文）：
+#   DB_URL / DB_USERNAME / DB_PASSWORD / JWT_SECRET / QRCODE_BASE_URL / FRONT_BASE_URL
+EnvironmentFile=/opt/association-system/assoc-server.env
+
+Restart=on-failure
+RestartSec=10
+SuccessExitStatus=143
+
+# 日志交由 journald；应用文件日志见 /var/log/association-system/
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
