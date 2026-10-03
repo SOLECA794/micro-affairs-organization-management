@@ -60,6 +60,7 @@ public class AdminAssociationService {
     @Transactional(rollbackFor = Exception.class)
     public Long create(AssociationCreateDTO dto) {
         requireManager(dto.leaderUserId());
+        checkLeaderNotBound(dto.leaderUserId(), null);
         Association association = new Association();
         association.setName(dto.name());
         association.setCode(dto.code());
@@ -88,6 +89,7 @@ public class AdminAssociationService {
             throw new BusinessException(ErrorCode.NOT_FOUND, "社团不存在");
         }
         requireManager(dto.leaderUserId());
+        checkLeaderNotBound(dto.leaderUserId(), id);
         if (dto.status() != Constants.STATUS_ENABLED && dto.status() != Constants.STATUS_DISABLED) {
             throw new BusinessException(ErrorCode.PARAM_ERROR, "状态取值不合法");
         }
@@ -106,6 +108,21 @@ public class AdminAssociationService {
         SysUser leader = sysUserMapper.selectById(userId);
         if (leader == null || !Constants.ROLE_MANAGER.equals(leader.getRole())) {
             throw new BusinessException(ErrorCode.PARAM_ERROR, "负责人必须为社团负责人角色账号");
+        }
+    }
+
+    /**
+     * 一个负责人只能绑定一个社团：已绑定其他社团的 MANAGER 再被绑定会产生"孤儿社团"（无人管理）。
+     * excludeAssociationId 用于更新场景（排除自己当前绑定的社团）。
+     */
+    private void checkLeaderNotBound(Long userId, Long excludeAssociationId) {
+        Association existing = associationMapper.selectOne(new LambdaQueryWrapper<Association>()
+                .eq(Association::getLeaderUserId, userId)
+                .ne(excludeAssociationId != null, Association::getId, excludeAssociationId)
+                .last("LIMIT 1"));
+        if (existing != null) {
+            throw new BusinessException(ErrorCode.PARAM_ERROR,
+                    "该负责人已绑定社团「" + existing.getName() + "」，一个负责人只能管理一个社团");
         }
     }
 

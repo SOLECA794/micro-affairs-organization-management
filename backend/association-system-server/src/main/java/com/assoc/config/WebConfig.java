@@ -17,9 +17,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
 
     private final AppProperties properties;
+    private final com.assoc.mapper.SysUserMapper sysUserMapper;
 
-    public WebConfig(AppProperties properties) {
+    public WebConfig(AppProperties properties, com.assoc.mapper.SysUserMapper sysUserMapper) {
         this.properties = properties;
+        this.sysUserMapper = sysUserMapper;
     }
 
     @Bean
@@ -29,7 +31,7 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Bean
     public JwtInterceptor jwtInterceptor(JwtUtil jwtUtil) {
-        return new JwtInterceptor(jwtUtil);
+        return new JwtInterceptor(jwtUtil, sysUserMapper);
     }
 
     @Override

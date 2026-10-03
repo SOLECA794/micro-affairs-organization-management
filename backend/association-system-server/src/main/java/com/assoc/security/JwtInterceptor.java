@@ -21,9 +21,11 @@ import java.io.IOException;
 public class JwtInterceptor implements HandlerInterceptor {
 
     private final JwtUtil jwtUtil;
+    private final com.assoc.mapper.SysUserMapper sysUserMapper;
 
-    public JwtInterceptor(JwtUtil jwtUtil) {
+    public JwtInterceptor(JwtUtil jwtUtil, com.assoc.mapper.SysUserMapper sysUserMapper) {
         this.jwtUtil = jwtUtil;
+        this.sysUserMapper = sysUserMapper;
     }
 
     @Override
@@ -41,7 +43,8 @@ public class JwtInterceptor implements HandlerInterceptor {
         boolean loginPublic = "POST".equals(method) && path.endsWith("/api/auth/login");
         boolean publicList = "GET".equals(method) && path.endsWith("/api/activities");
         boolean qrcodeLanding = "GET".equals(method) && path.endsWith("/api/signin/qrcode");
-        if (loginPublic || publicList || qrcodeLanding) {
+        boolean publicOptions = "GET".equals(method) && path.startsWith("/api/options/");
+        if (loginPublic || publicList || qrcodeLanding || publicOptions) {
             return true;
         }
 
@@ -67,6 +70,16 @@ public class JwtInterceptor implements HandlerInterceptor {
                 claims.get("username", String.class),
                 claims.get("realName", String.class),
                 claims.get("role", String.class));
+
+        // 账号状态实时校验：停用/删除用户即使 token 未过期也立即失效（主键查询，开销可接受）
+        com.assoc.entity.SysUser user = loginUser.userId() == null ? null : sysUserMapper.selectById(loginUser.userId());
+        if (user == null || user.getStatus() == null || user.getStatus() != Constants.STATUS_ENABLED
+                || user.getDeleted() == null || user.getDeleted() != 0) {
+            ResponseWriter.write(response, 401,
+                    ApiResponse.error(ErrorCode.UNAUTHORIZED, "账号已停用或不存在"));
+            return false;
+        }
+
         UserContext.set(loginUser);
 
         // 角色校验：方法注解优先，其次类注解

@@ -46,19 +46,25 @@ public class ActivityService {
         this.signupMapper = signupMapper;
     }
 
+    /** 公开列表允许的状态白名单：草稿/待审核/已通过/已驳回不可经此接口枚举 */
+    private static final java.util.Set<String> PUBLIC_STATUS_WHITELIST = java.util.Set.of(
+            Constants.ACT_PUBLISHED, Constants.ACT_ENDED, Constants.ACT_ARCHIVED, Constants.ACT_CANCELLED);
+
     /**
      * 公开活动列表。学生端默认展示“报名中/即将开始”，即未传 status 时默认 PUBLISHED
      * （时间判断以服务器时间为准，前端不参与业务判定）。
+     * status 白名单外（含 DRAFT/PENDING/APPROVED/REJECTED 等内部状态）一律视为未传，强制收窄为默认值。
      */
     public PageResult<ActivityListVO> pageActivities(String keyword, Long associationId, Long categoryId,
                                                      String status, LocalDateTime startTimeBegin,
                                                      LocalDateTime startTimeEnd, int page, int size) {
+        String effectiveStatus = status == null || status.isBlank() || !PUBLIC_STATUS_WHITELIST.contains(status)
+                ? Constants.ACT_PUBLISHED : status;
         LambdaQueryWrapper<Activity> wrapper = new LambdaQueryWrapper<Activity>()
                 .like(keyword != null && !keyword.isBlank(), Activity::getTitle, keyword)
                 .eq(associationId != null, Activity::getAssociationId, associationId)
                 .eq(categoryId != null, Activity::getCategoryId, categoryId)
-                .eq(status != null && !status.isBlank(), Activity::getStatus,
-                        status == null || status.isBlank() ? Constants.ACT_PUBLISHED : status)
+                .eq(Activity::getStatus, effectiveStatus)
                 .ge(startTimeBegin != null, Activity::getStartTime, startTimeBegin)
                 .le(startTimeEnd != null, Activity::getStartTime, startTimeEnd)
                 .orderByDesc(Activity::getStartTime);
