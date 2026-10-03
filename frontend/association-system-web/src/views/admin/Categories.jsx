@@ -59,7 +59,7 @@ export default function AdminCategories() {
   const onDelete = (row) => {
     modal.confirm({
       title: '删除分类',
-      content: `确认删除分类「${row.name}」吗？已关联该分类的活动不受影响。`,
+      content: `确认删除分类「${row.name}」吗？被活动引用的分类无法删除。`,
       okButtonProps: { danger: true },
       onOk: async () => {
         await deleteCategory(row.id);

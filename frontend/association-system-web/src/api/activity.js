@@ -7,3 +7,7 @@ export const signupActivity = (id) => request.post(`/activities/${id}/signup`);
 export const cancelSignup = (id) => request.post(`/activities/${id}/cancel`);
 export const pageMySignups = (params) => request.get('/me/signups', { params });
 export const scanSignin = (data) => request.post('/signin/qrcode', data);
+
+/** 公开下拉选项（实现期扩展）：社团/分类 [{id, name}]，用于活动筛选 */
+export const getAssociationOptions = () => request.get('/options/associations');
+export const getCategoryOptions = () => request.get('/options/categories');

@@ -3,6 +3,8 @@ import request from '../utils/request';
 /** 管理端：用户、社团、分类、审核、日志（04 文档 §4.4） */
 export const pageUsers = (params) => request.get('/admin/users', { params });
 export const updateUserStatus = (id, data) => request.put(`/admin/users/${id}`, data);
+export const createUser = (data) => request.post('/admin/users', data);
+export const resetUserPassword = (id, data) => request.put(`/admin/users/${id}/password`, data);
 export const pageAssociations = (params) => request.get('/admin/associations', { params });
 export const createAssociation = (data) => request.post('/admin/associations', data);
 export const updateAssociation = (id, data) => request.put(`/admin/associations/${id}`, data);

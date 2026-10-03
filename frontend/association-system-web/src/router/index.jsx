@@ -50,7 +50,7 @@ export const router = createBrowserRouter([
         path: 'me/profile',
       },
       {
-        element: <RequireAuth roles={['STUDENT']}><Notifications /></RequireAuth>,
+        element: <RequireAuth roles={['STUDENT', 'MANAGER', 'ADMIN']}><Notifications /></RequireAuth>,
         path: 'me/notifications',
       },
       // 社团端

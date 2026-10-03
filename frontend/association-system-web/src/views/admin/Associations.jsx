@@ -181,7 +181,7 @@ export default function AdminAssociations() {
             <Input.TextArea rows={3} maxLength={500} showCount />
           </Form.Item>
           <Typography.Paragraph type="secondary">
-            提示：停用社团后，其活动不可新发布。
+            提示：一个负责人只能绑定一个社团；停用社团后，其活动不可新发布。
           </Typography.Paragraph>
         </Form>
       </Modal>

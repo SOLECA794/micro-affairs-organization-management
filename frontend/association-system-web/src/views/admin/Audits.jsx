@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, Button, Space, Input, Select, App, Modal, Tag, Typography } from 'antd';
+import { Card, Button, Space, Input, Select, App, Modal, Tag, Typography, Descriptions } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import PaginatedTable from '../../components/PaginatedTable';
 import StatusTag from '../../components/StatusTag';
 import { pageAudits, approveAudit, rejectAudit } from '../../api/admin';
+import { formatDateTime } from '../../utils/format';
 
 const STATUS_OPTIONS = [
   { value: 'PENDING', label: '待审核' },
@@ -12,9 +12,8 @@ const STATUS_OPTIONS = [
   { value: 'REJECTED', label: '已驳回' },
 ];
 
-/** 活动审核（管理端）：待审核列表、通过、驳回（必填意见） */
+/** 活动审核（管理端）：待审核列表、通过、驳回（必填意见）、行内详情弹窗（消除盲审） */
 export default function AdminAudits() {
-  const navigate = useNavigate();
   const { message, modal } = App.useApp();
   const [loading, setLoading] = useState(false);
   const [list, setList] = useState([]);
@@ -23,6 +22,7 @@ export default function AdminAudits() {
   const [size, setSize] = useState(10);
   const [status, setStatus] = useState('PENDING');
   const [keyword, setKeyword] = useState('');
+  const [detailRow, setDetailRow] = useState(null);
 
   const fetchList = useCallback(async (p, s, st, kw) => {
     setLoading(true);
@@ -95,7 +95,7 @@ export default function AdminAudits() {
         <Space>
           {row.status === 'PENDING' && <a onClick={() => handleApprove(row)}>通过</a>}
           {row.status === 'PENDING' && <a style={{ color: '#ff4d4f' }} onClick={() => handleReject(row)}>驳回</a>}
-          <a onClick={() => navigate(`/manager/activities`)}>详情</a>
+          <a onClick={() => setDetailRow(row)}>详情</a>
         </Space>
       ),
     },
@@ -133,6 +133,35 @@ export default function AdminAudits() {
       <Typography.Paragraph type="secondary" style={{ marginTop: 12 }}>
         审核结果将站内通知负责人；驳回必须填写意见。
       </Typography.Paragraph>
+
+      <Modal
+        title={`活动详情：${detailRow?.title || ''}`}
+        open={!!detailRow}
+        footer={null}
+        onCancel={() => setDetailRow(null)}
+        width={640}
+      >
+        {detailRow && (
+          <Descriptions column={1} size="small" bordered>
+            <Descriptions.Item label="状态"><StatusTag status={detailRow.status} /></Descriptions.Item>
+            <Descriptions.Item label="社团">{detailRow.associationName || '-'}</Descriptions.Item>
+            <Descriptions.Item label="分类">{detailRow.categoryName || '-'}</Descriptions.Item>
+            <Descriptions.Item label="地点">{detailRow.location || '-'}</Descriptions.Item>
+            <Descriptions.Item label="开始时间">{formatDateTime(detailRow.startTime)}</Descriptions.Item>
+            <Descriptions.Item label="结束时间">{formatDateTime(detailRow.endTime)}</Descriptions.Item>
+            <Descriptions.Item label="报名截止">{formatDateTime(detailRow.signupDeadline)}</Descriptions.Item>
+            <Descriptions.Item label="名额">{detailRow.capacity ?? '-'}</Descriptions.Item>
+            <Descriptions.Item label="活动简介">
+              <Typography.Paragraph style={{ whiteSpace: 'pre-wrap', marginBottom: 0 }}>
+                {detailRow.description || '（无）'}
+              </Typography.Paragraph>
+            </Descriptions.Item>
+            {detailRow.auditComment && (
+              <Descriptions.Item label="审核意见">{detailRow.auditComment}</Descriptions.Item>
+            )}
+          </Descriptions>
+        )}
+      </Modal>
     </Card>
   );
 }

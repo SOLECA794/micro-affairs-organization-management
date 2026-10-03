@@ -31,6 +31,7 @@ const MENUS = {
   MANAGER: [
     { key: '/manager', icon: <DashboardOutlined />, label: '工作台' },
     { key: '/manager/activities', icon: <CalendarOutlined />, label: '活动管理' },
+    { key: '/me/notifications', icon: <BellOutlined />, label: '我的消息' },
     { key: '/me/profile', icon: <UserOutlined />, label: '个人中心' },
   ],
   ADMIN: [
@@ -39,6 +40,7 @@ const MENUS = {
     { key: '/admin/categories', icon: <TagsOutlined />, label: '分类管理' },
     { key: '/admin/audits', icon: <AuditOutlined />, label: '活动审核' },
     { key: '/admin/logs', icon: <FileTextOutlined />, label: '日志查询' },
+    { key: '/me/notifications', icon: <BellOutlined />, label: '我的消息' },
   ],
 };
 
