@@ -44,8 +44,9 @@ public class StatisticsService {
         this.activityService = activityService;
     }
 
-    /** 单个活动统计 */
+    /** 单个活动统计（归属校验防横向越权） */
     public ActivityStatisticsVO activityStatistics(Long activityId) {
+        signupService.requireOwnership(activityId);
         Activity activity = activityMapper.selectById(activityId);
         if (activity == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND, "活动不存在");

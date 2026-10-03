@@ -197,8 +197,9 @@ public class SigninService {
         return attendance;
     }
 
-    /** 签到名单（社团端） */
+    /** 签到名单（社团端；归属校验防横向越权） */
     public List<com.assoc.vo.AttendanceItemVO> attendanceList(Long activityId) {
+        signupService.requireOwnership(activityId);
         List<Attendance> records = attendanceMapper.selectList(new LambdaQueryWrapper<Attendance>()
                 .eq(Attendance::getActivityId, activityId)
                 .orderByAsc(Attendance::getSignTime));
@@ -221,8 +222,9 @@ public class SigninService {
         }).toList();
     }
 
-    /** 未签到的报名成功成员（补签候选） */
+    /** 未签到的报名成功成员（补签候选；归属校验防横向越权） */
     public List<com.assoc.vo.SignupItemVO> unsignedActiveSignups(Long activityId) {
+        signupService.requireOwnership(activityId);
         LambdaQueryWrapper<Signup> wrapper = new LambdaQueryWrapper<Signup>()
                 .eq(Signup::getActivityId, activityId)
                 .eq(Signup::getStatus, Constants.SIGNUP_ACTIVE);

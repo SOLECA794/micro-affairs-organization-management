@@ -143,10 +143,15 @@ public class SignupService {
             throw new BusinessException(ErrorCode.STATE_NOT_ALLOWED, "当前无有效报名记录");
         }
 
-        boolean freedSlot = Constants.SIGNUP_ACTIVE.equals(signup.getStatus());
-        if (freedSlot) {
-            // 释放名额（02 文档 §5.3）
-            activityMapper.decreaseEnrolled(activityId);
+        boolean wasActive = Constants.SIGNUP_ACTIVE.equals(signup.getStatus());
+        // 先看是否有候补可递补：有 → 名额随取消"转移"给候补者（不增不减）；无 → 才真正释放名额。
+        // 修复点：原实现无条件 decreaseEnrolled，递补后未回补，导致 enrolled_count 漂移并可能超卖。
+        Signup next = null;
+        if (wasActive) {
+            next = signupMapper.selectFirstWaiting(activityId);
+            if (next == null) {
+                activityMapper.decreaseEnrolled(activityId);
+            }
         }
         signupMapper.update(null, new LambdaUpdateWrapper<Signup>()
                 .eq(Signup::getId, signup.getId())
@@ -156,25 +161,23 @@ public class SignupService {
         operationLogService.record(userId, Constants.MODULE_SIGNUP, "取消报名",
                 "活动: " + activity.getTitle());
 
-        // 递补仅在取消事务内触发，避免并发重复递补（02 文档 §5.4）
-        if (freedSlot) {
-            Signup next = signupMapper.selectFirstWaiting(activityId);
-            if (next != null) {
-                signupMapper.update(null, new LambdaUpdateWrapper<Signup>()
-                        .eq(Signup::getId, next.getId())
-                        .set(Signup::getStatus, Constants.SIGNUP_ACTIVE)
-                        .set(Signup::getQueueOrder, 0));
-                notificationService.create(next.getUserId(), Constants.NOTIFY_PROMOTED, "候补递补成功",
-                        "活动《" + activity.getTitle() + "》有名额释放，您已由候补递补为报名成功。");
-                operationLogService.record(next.getUserId(), Constants.MODULE_SIGNUP, "候补递补",
-                        "活动: " + activity.getTitle() + "，递补用户: " + next.getUserId());
-                log.info("递补完成 activityId={} signupId={} userId={}", activityId, next.getId(), next.getUserId());
-            }
+        // 递补仅在取消事务内触发，避免并发重复递补（02 文档 §5.4）；名额不变（转移）
+        if (next != null) {
+            signupMapper.update(null, new LambdaUpdateWrapper<Signup>()
+                    .eq(Signup::getId, next.getId())
+                    .set(Signup::getStatus, Constants.SIGNUP_ACTIVE)
+                    .set(Signup::getQueueOrder, 0));
+            notificationService.create(next.getUserId(), Constants.NOTIFY_PROMOTED, "候补递补成功",
+                    "活动《" + activity.getTitle() + "》有名额释放，您已由候补递补为报名成功。");
+            operationLogService.record(next.getUserId(), Constants.MODULE_SIGNUP, "候补递补",
+                    "活动: " + activity.getTitle() + "，递补用户: " + next.getUserId());
+            log.info("递补完成 activityId={} signupId={} userId={}", activityId, next.getId(), next.getUserId());
         }
     }
 
     /** 社团端报名名单（按状态筛选、分页，含是否已签到标记） */
     public PageResult<SignupItemVO> signupList(Long activityId, String status, int page, int size) {
+        requireOwnership(activityId);
         LambdaQueryWrapper<Signup> wrapper = new LambdaQueryWrapper<Signup>()
                 .eq(Signup::getActivityId, activityId)
                 .eq(status != null && !status.isBlank(), Signup::getStatus, status)
@@ -229,6 +232,15 @@ public class SignupService {
         if (association == null || !association.getId().equals(activity.getAssociationId())) {
             throw new BusinessException(ErrorCode.FORBIDDEN, "无权操作其他社团的活动");
         }
+    }
+
+    /** 读接口归属校验入口：活动存在 + 当前登录负责人为本社团归属（越权返回 40300） */
+    public void requireOwnership(Long activityId) {
+        Activity activity = activityMapper.selectById(activityId);
+        if (activity == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "活动不存在");
+        }
+        checkOwnership(activity, UserContext.userId());
     }
 
     private void saveSignup(Signup signup, boolean isUpdate) {
