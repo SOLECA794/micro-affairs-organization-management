@@ -3,15 +3,19 @@ package com.assoc.controller;
 import com.assoc.common.ApiResponse;
 import com.assoc.common.Constants;
 import com.assoc.common.PageResult;
+import com.assoc.dto.UserCreateDTO;
+import com.assoc.dto.UserResetPasswordDTO;
 import com.assoc.dto.UserStatusDTO;
 import com.assoc.security.RequireRole;
 import com.assoc.service.AdminUserService;
+import com.assoc.vo.UserPasswordVO;
 import com.assoc.vo.UserVO;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,5 +52,18 @@ public class AdminUserController {
     public ApiResponse<Void> updateStatus(@PathVariable Long id, @Valid @RequestBody UserStatusDTO dto) {
         adminUserService.updateStatus(id, dto.status());
         return ApiResponse.ok();
+    }
+
+    /** 创建用户（实现期扩展）：返回一次性初始密码 */
+    @PostMapping
+    public ApiResponse<UserPasswordVO> create(@Valid @RequestBody UserCreateDTO dto) {
+        return ApiResponse.ok(adminUserService.create(dto));
+    }
+
+    /** 重置密码（实现期扩展）：返回一次性新密码 */
+    @PutMapping("/{id}/password")
+    public ApiResponse<UserPasswordVO> resetPassword(@PathVariable Long id,
+                                                     @Valid @RequestBody UserResetPasswordDTO dto) {
+        return ApiResponse.ok(adminUserService.resetPassword(id, dto.password()));
     }
 }
