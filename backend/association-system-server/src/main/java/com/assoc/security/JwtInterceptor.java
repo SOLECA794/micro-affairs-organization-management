@@ -37,9 +37,11 @@ public class JwtInterceptor implements HandlerInterceptor {
         String method = request.getMethod();
 
         // 公开接口放行
+        // 部署阶段修复：登录接口未放行（与类注释声明不一致），导致任何账号都无法登录
+        boolean loginPublic = "POST".equals(method) && path.endsWith("/api/auth/login");
         boolean publicList = "GET".equals(method) && path.endsWith("/api/activities");
         boolean qrcodeLanding = "GET".equals(method) && path.endsWith("/api/signin/qrcode");
-        if (publicList || qrcodeLanding) {
+        if (loginPublic || publicList || qrcodeLanding) {
             return true;
         }
 

@@ -33,16 +33,17 @@ public final class UserContext {
         return user == null ? null : user.role();
     }
 
-    /** 从 JWT 负载解析 userId（JSON 数值可能为 Integer，统一转 Long） */
+    /** 从 JWT 负载解析 userId（部署阶段修复：签发端将 userId 写入 subject，此处改为读 subject；
+     *  原实现读取不存在的 "userId" 声明，导致所有业务接口拿到 null 用户） */
     public static Long userIdOf(Claims claims) {
         if (claims == null) {
             return null;
         }
-        Object value = claims.get("userId");
-        if (value instanceof Number number) {
-            return number.longValue();
+        String subject = claims.getSubject();
+        if (subject == null || subject.isBlank()) {
+            return null;
         }
-        return null;
+        return Long.valueOf(subject);
     }
 
     public static void clear() {
