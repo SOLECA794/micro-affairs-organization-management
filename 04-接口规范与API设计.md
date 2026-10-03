@@ -63,15 +63,17 @@
 
 | 方法 | 路径 | 角色 | 说明 |
 | --- | --- | --- | --- |
-| GET | /api/activities | 学生/公开 | 活动列表（按社团、时间、状态、关键词，分页） |
+| GET | /api/activities | 学生/公开 | 活动列表（按社团、时间、状态、关键词，分页；status 仅接受 PUBLISHED/ENDED/ARCHIVED/CANCELLED，白名单外视为未传并默认 PUBLISHED——防草稿/待审核枚举，安全修复） |
 | GET | /api/activities/{id} | 学生 | 活动详情（含剩余名额、报名状态） |
 | POST | /api/activities/{id}/signup | 学生 | 报名（成功或进入候补） |
-| POST | /api/activities/{id}/cancel | 学生 | 取消报名（截止前） |
+| POST | /api/activities/{id}/cancel | 学生 | 取消报名（截止前；有候补时名额转移给候补者，enrolled_count 不变） |
 | GET | /api/me/signups | 学生 | 我的报名（状态：已报名/候补/已取消） |
 | POST | /api/signin/qrcode | 学生 | 扫码签到（activityId、token） |
-| GET | /api/me/notifications | 学生 | 我的通知（分页，含未读标记） |
+| GET | /api/me/notifications | 全部登录角色 | 我的通知（分页，含未读标记；实现期扩展：由仅学生放开为任意登录角色） |
 | GET | /api/signin/qrcode | 公开 | 扫码落地页（校验 token 后 302 跳转前端活动页携带签到参数，见 §5.3；浏览器跳转接口） |
-| POST | /api/me/notifications/{id}/read | 学生 | 标记通知已读 |
+| POST | /api/me/notifications/{id}/read | 全部登录角色 | 标记通知已读（仅本人通知） |
+| GET | /api/options/associations | 公开 | 启用社团下拉选项 [{id, name}]（实现期扩展，无 PII） |
+| GET | /api/options/categories | 公开 | 活动分类下拉选项 [{id, name}]（实现期扩展） |
 
 ### 4.3 社团端 manager（负责人）
 
@@ -102,7 +104,9 @@
 | 方法 | 路径 | 角色 | 说明 |
 | --- | --- | --- | --- |
 | GET | /api/admin/users | ADMIN | 用户列表（分页、筛选） |
+| POST | /api/admin/users | ADMIN | 创建用户（STUDENT/MANAGER；初始密码留空由服务端生成随机 8 位，响应明文返回一次；实现期扩展） |
 | PUT | /api/admin/users/{id} | ADMIN | 启用/停用用户 |
+| PUT | /api/admin/users/{id}/password | ADMIN | 重置用户密码（可指定或服务端生成，响应明文返回一次，写操作日志；实现期扩展） |
 | GET | /api/admin/associations | ADMIN | 社团列表 |
 | POST | /api/admin/associations | ADMIN | 创建社团 |
 | PUT | /api/admin/associations/{id} | ADMIN | 维护社团（含负责人、状态） |
@@ -162,6 +166,16 @@
 ### 5.4 扫码签到（POST /api/signin/qrcode）
 
 请求：`{ "activityId": 1, "token": "uuid-string" }`。响应 data 为签到记录；40901 表示重复签到，40001 表示过期或无效签到码。
+
+### 5.5 创建用户 / 重置密码（实现期扩展）
+
+- `POST /api/admin/users`：请求 `{username, realName, role: STUDENT|MANAGER, phone?, password?}`；
+  响应 `data: {id, username, realName, role, initialPassword}`。`initialPassword` 为一次性明文
+  （客户端未传时由服务端生成随机 8 位），仅在该响应中出现，不落库明文。
+- `PUT /api/admin/users/{id}/password`：请求 `{password?}`，留空由服务端生成；响应同上。
+  操作写 operation_log（admin 模块，"创建用户"/"重置密码"）。
+- `GET /api/options/associations`、`GET /api/options/categories`：公开匿名，响应
+  `data: [{id, name}]`，仅暴露 id 与名称，不含负责人、联系方式等 PII。
 
 ## 6. 开发期建议
 
