@@ -1,0 +1,41 @@
+digraph StudentUseCase {
+  graph [rankdir=LR, bgcolor="white", pad=0.3, nodesep=0.45, ranksep=0.9, fontname="Noto Sans CJK SC", label="图 4-1 学生端系统用例图", labelloc=b, fontsize=14];
+  node [fontname="Noto Sans CJK SC", fontsize=12];
+  edge [fontname="Noto Sans CJK SC", fontsize=10, color="black"];
+
+  student [shape=plaintext, label="○\n╱│╲\n╱ ╲\n学生"];
+
+  subgraph cluster_system {
+    label="社团活动报名与签到系统——学生端";
+    fontname="Noto Sans CJK SC";
+    fontsize=13;
+    style="rounded";
+
+    browse [shape=ellipse, label="浏览/筛选活动"];
+    detail [shape=ellipse, label="查看活动详情"];
+    signup [shape=ellipse, label="报名活动"];
+    validate_signup [shape=ellipse, label="校验报名资格"];
+    waiting [shape=ellipse, label="进入候补"];
+    cancel [shape=ellipse, label="取消报名"];
+    promote [shape=ellipse, label="触发候补递补"];
+    mine [shape=ellipse, label="查看我的报名"];
+    scan [shape=ellipse, label="扫码签到"];
+    validate_scan [shape=ellipse, label="签到有效性校验"];
+    notice [shape=ellipse, label="查看/标记通知"];
+    profile [shape=ellipse, label="维护个人资料/修改密码"];
+  }
+
+  student -> browse [dir=none];
+  student -> detail [dir=none];
+  student -> signup [dir=none];
+  student -> cancel [dir=none];
+  student -> mine [dir=none];
+  student -> scan [dir=none];
+  student -> notice [dir=none];
+  student -> profile [dir=none];
+
+  signup -> validate_signup [style=dashed, label="<<include>>", arrowhead=open];
+  waiting -> signup [style=dashed, label="<<extend>>\n名额已满", arrowhead=open];
+  promote -> cancel [style=dashed, label="<<extend>>\nACTIVE取消且存在候补", arrowhead=open];
+  scan -> validate_scan [style=dashed, label="<<include>>", arrowhead=open];
+}

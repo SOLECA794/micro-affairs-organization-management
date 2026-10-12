@@ -1,0 +1,32 @@
+digraph ManagerUseCase {
+  graph [rankdir=LR, bgcolor="white", pad=0.35, nodesep=0.6, ranksep=1.0, fontname="Noto Sans CJK SC", label="图 4-2 社团负责人端系统用例图", labelloc=b, fontsize=14];
+  node [fontname="Noto Sans CJK SC", fontsize=11];
+  edge [fontname="Noto Sans CJK SC", fontsize=9, color="black"];
+
+  manager [shape=plaintext, label="○\n╱│╲\n╱ ╲\n社团负责人"];
+
+  subgraph cluster_system {
+    label="社团活动报名与签到系统——社团负责人端";
+    fontname="Noto Sans CJK SC";
+    fontsize=13;
+    style="rounded";
+
+    activity [shape=ellipse, label="活动管理\n（创建/修改/提交审核/\n发布/取消/归档）"];
+    signup [shape=ellipse, label="报名名单管理\n（查询/筛选/导出）"];
+    signin [shape=ellipse, label="签到管理\n（开启二维码/查看名单/人工补签）"];
+    stats [shape=ellipse, label="统计与导出\n（报名/签到/缺席/到场率）"];
+    assoc [shape=ellipse, label="维护本社团资料"];
+    notice [shape=ellipse, label="查看/标记个人通知"];
+
+    { rank=same; activity; signup; signin; }
+    { rank=same; stats; assoc; notice; }
+    activity -> stats [style=invis, weight=8];
+  }
+
+  manager -> activity [dir=none];
+  manager -> signup [dir=none];
+  manager -> signin [dir=none];
+  manager -> stats [dir=none];
+  manager -> assoc [dir=none];
+  manager -> notice [dir=none];
+}

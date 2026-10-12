@@ -1,0 +1,41 @@
+digraph AdminUseCase {
+  graph [rankdir=LR, bgcolor="white", pad=0.3, nodesep=0.45, ranksep=0.9, fontname="Noto Sans CJK SC", label="图 4-3 系统管理员端系统用例图", labelloc=b, fontsize=14];
+  node [fontname="Noto Sans CJK SC", fontsize=11];
+  edge [fontname="Noto Sans CJK SC", fontsize=9, color="black"];
+
+  admin [shape=plaintext, label="○\n╱│╲\n╱ ╲\n系统管理员"];
+
+  subgraph cluster_system {
+    label="社团活动报名与签到系统——系统管理员端";
+    fontname="Noto Sans CJK SC";
+    fontsize=13;
+    style="rounded";
+
+    users [shape=ellipse, label="用户管理"];
+    create_user [shape=ellipse, label="创建学生/负责人账号"];
+    status_user [shape=ellipse, label="启用/停用用户"];
+    reset_pwd [shape=ellipse, label="重置用户密码"];
+    assocs [shape=ellipse, label="社团管理"];
+    categories [shape=ellipse, label="活动分类管理"];
+    audit [shape=ellipse, label="活动审核"];
+    audit_detail [shape=ellipse, label="查看待审核活动详情"];
+    approve [shape=ellipse, label="审核通过"];
+    reject [shape=ellipse, label="审核驳回并填写意见"];
+    logs [shape=ellipse, label="查询操作日志"];
+    notice [shape=ellipse, label="查看/标记个人通知"];
+  }
+
+  admin -> users [dir=none];
+  admin -> assocs [dir=none];
+  admin -> categories [dir=none];
+  admin -> audit [dir=none];
+  admin -> logs [dir=none];
+  admin -> notice [dir=none];
+
+  users -> create_user [style=dashed, label="<<include>>", arrowhead=open];
+  users -> status_user [style=dashed, label="<<include>>", arrowhead=open];
+  users -> reset_pwd [style=dashed, label="<<include>>", arrowhead=open];
+  audit -> audit_detail [style=dashed, label="<<include>>", arrowhead=open];
+  approve -> audit [style=dashed, label="<<extend>>", arrowhead=open];
+  reject -> audit [style=dashed, label="<<extend>>", arrowhead=open];
+}
